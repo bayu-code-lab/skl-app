@@ -4,11 +4,19 @@ from sqlmodel import SQLModel, create_engine
 from sqlmodel.ext.asyncio.session import AsyncSession, AsyncEngine
 
 from sqlalchemy.orm import sessionmaker
+from backend.core.config import settings
 
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
-
-engine = AsyncEngine(create_engine(DATABASE_URL, echo=True, future=True))
+engine = AsyncEngine(
+    create_engine(
+            settings.DATABASE_URI, 
+            echo=True, 
+            future=True,
+            pool_pre_ping=True,
+            pool_size=settings.DB_POOL_SIZE,
+            max_overflow=settings.DB_POOL_MAX_OVERFLOW,
+        )
+    )
 
 async def init_db():
     async with engine.begin() as conn:

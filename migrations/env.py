@@ -1,9 +1,32 @@
+import os
+from dotenv import load_dotenv
+from urllib.parse import quote_plus as url_quote
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
+from sqlmodel import SQLModel    
 from alembic import context
+
+# this is the Alembic Config object, which provides
+from backend.entities.master.user import User
+from backend.entities.master.user_information import UserInformation
+from backend.entities.master.role import Role
+from backend.entities.master.resource import Resource
+from backend.entities.master.resource_role import ResourceRole
+
+# Load environment variables from .env file
+load_dotenv(dotenv_path=".env")
+
+# Retrieve database credentials from environment variables
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASS = url_quote(os.getenv("DB_PASS")).replace("%", "%%")
+DB_DRIVER = os.getenv("DB_DRIVER")
+# Construct the PostgreSQL connection string
+CONNECTION_STRING = f"{DB_DRIVER}://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -13,12 +36,13 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+config.set_main_option("sqlalchemy.url", CONNECTION_STRING)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -38,7 +62,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = CONNECTION_STRING
     context.configure(
         url=url,
         target_metadata=target_metadata,
