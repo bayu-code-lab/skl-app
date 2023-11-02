@@ -1,8 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import quote_plus as url_quote
-import os
 from pydantic import AnyHttpUrl, BaseSettings, validator
-import os
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 class Settings(BaseSettings):
@@ -10,6 +9,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_MINUTES: int
 
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: str
     DB_PORT: str
-    DB_DRIVER: str
+    DB_DRIVER_ASYNC: str
     DATABASE_URI: Optional[str] = None
 
     DB_POOL_SIZE: int
@@ -45,13 +45,13 @@ class Settings(BaseSettings):
     ) -> Any:
         if isinstance(v, str):
             return v
-        return "{DB_DRIVER}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}".format(
+        return "{DB_DRIVER_ASYNC}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}".format(
             USER=values.get("DB_USER"),
             PASSWORD=url_quote(values.get("DB_PASS")),
             HOST=values.get("DB_HOST"),
             PORT=values.get("DB_PORT"),
             DATABASE=values.get("DB_NAME"),
-            DB_DRIVER=values.get("DB_DRIVER")
+            DB_DRIVER_ASYNC=values.get("DB_DRIVER_ASYNC")
         )
 
     class Config:
